@@ -2,8 +2,16 @@
 # get the rating of movies of Douban
 
 import re
-import requests
 from bs4 import BeautifulSoup
+import pandas as pd
+import requests
+
+# realtime box office
+url_box = 'http://www.cbooo.cn/'
+box_re = requests.get(url_box).content
+box_df = pd.read_html(box_re)[0]
+del box_df['Unnamed: 7']
+del box_df['Unnamed: 0']
 
 url = 'https://movie.douban.com/nowplaying/beijing/'
 movie_list = requests.get(url)
@@ -41,8 +49,11 @@ director = re.findall(r'data-director="(.*)"', movie_list.text)
 votecount = re.findall(r'data-votecount="(.*)"', movie_list.text)
 
 movies_dict = []
-for item in zip(titles,actors,director,scores,star,votecount,region):
+for item in zip(titles, actors, director, scores, star, votecount, region):
     movies_dict.append(item)
 
-print(movies_dict)
-# [('功夫瑜伽', '成龙 / 李治廷 / 张艺兴', '唐季礼', '5.8', '30', '22479', '中国大陆 印度'),
+df1 = pd.DataFrame(list(movies_dict), columns=["title", "actors", "director", "scores", "star", "votecount", "region"])
+
+
+box_office_data = df1.merge(box_df, left_on="title", right_on='影片名称', how='outer')
+print(box_office_data)
