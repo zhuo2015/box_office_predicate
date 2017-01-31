@@ -7,11 +7,23 @@ import pandas as pd
 import requests
 
 # realtime box office
-url_box = 'http://www.cbooo.cn/'
-box_re = requests.get(url_box).content
-box_df = pd.read_html(box_re)[0]
-del box_df['Unnamed: 7']
-del box_df['Unnamed: 0']
+
+json11 = "http://www.cbooo.cn/BoxOffice/GetHourBoxOffice?d=1485874026355"
+url_xml = 'http://www.cbooo.cn/BoxOffice/GetHourBoxOffice'
+tt = requests.get(url_xml)
+
+ss = tt.json()
+ddf = pd.DataFrame(ss['data2'])
+ddf.columns =['实时票房','排名', 'xxx','片名','票房占比','xxx','上映天数', '累计票房']
+del ddf['xxx']
+ddf.reindex(columns=['排名', '片名','实时票房','票房占比','上映天数', '累计票房','xxxid'])
+box_df = ddf
+
+# url_box = 'http://www.cbooo.cn/'
+# box_re = requests.get(url_box).content
+# box_df = pd.read_html(box_re)[0]
+# del box_df['Unnamed: 7']
+# del box_df['Unnamed: 0']
 
 url = 'https://movie.douban.com/nowplaying/beijing/'
 movie_list = requests.get(url)
@@ -54,6 +66,8 @@ for item in zip(titles, actors, director, scores, star, votecount, region):
 
 df1 = pd.DataFrame(list(movies_dict), columns=["title", "actors", "director", "scores", "star", "votecount", "region"])
 
-
-box_office_data = df1.merge(box_df, left_on="title", right_on='影片名称', how='outer')
+print(df1)
+print(box_df)
+box_office_data = df1.merge(box_df, left_on="title", right_on='片名', how='outer')
 print(box_office_data)
+box_office_data = box_office_data.dropna()
